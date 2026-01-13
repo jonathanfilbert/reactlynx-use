@@ -65,44 +65,6 @@ function getLocaleSidebar(lang: 'en' | 'zh', routePrefix: string) {
   return items;
 }
 
-function getApiSidebar() {
-  const apiDir = path.join(__dirname, 'docs/api');
-  if (!fs.existsSync(apiDir)) {
-    return [];
-  }
-
-  const items = [];
-
-  // Add main entry
-  items.push({
-    text: 'Overview',
-    link: '/api/README',
-  });
-
-  // Add directories
-  const dirs = ['functions', 'interfaces', 'type-aliases', 'variables'];
-
-  dirs.forEach(dir => {
-    const dirPath = path.join(apiDir, dir);
-    if (fs.existsSync(dirPath)) {
-      const files = fs.readdirSync(dirPath)
-        .filter(file => file.endsWith('.md'))
-        .map(file => `/api/${dir}/${file.replace('.md', '')}`);
-
-      if (files.length > 0) {
-        items.push({
-          text: dir.charAt(0).toUpperCase() + dir.slice(1),
-          items: files,
-          collapsible: true,
-          collapsed: true,
-        });
-      }
-    }
-  });
-
-  return items;
-}
-
 const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf-8'));
 
 export default defineConfig({
@@ -125,14 +87,8 @@ export default defineConfig({
             link: '/overview',
             activeMatch: '^/(overview|guide|events|lifecycles|mts|side-effects|state)/',
           },
-          {
-            text: 'API',
-            link: '/api/README',
-            activeMatch: '^/api/',
-          },
         ],
         sidebar: {
-          '/api': getApiSidebar(),
           '/': getLocaleSidebar('en', ''),
         },
       },
@@ -146,14 +102,8 @@ export default defineConfig({
             link: '/zh/overview',
             activeMatch: '^/zh/(overview|guide|events|lifecycles|mts|side-effects|state)/',
           },
-          {
-            text: 'API',
-            link: '/zh/api/README',
-            activeMatch: '^/zh/api/',
-          },
         ],
         sidebar: {
-          '/zh/api': getApiSidebar(),
           '/zh': getLocaleSidebar('zh', '/zh'),
         },
       },

@@ -1,9 +1,0 @@
-{
-  "entryPoints": ["src/index.ts"],
-  "out": "docs/api",
-  "plugin": ["typedoc-plugin-markdown"],
-  "tsconfig": "tsconfig.build.json",
-  "skipErrorChecking": true,
-  "readme": "none",
-  "disableSources": true
-}
