@@ -8,8 +8,18 @@ hero:
   actions:
     - theme: brand
       text: Get Started
-      link: /en/events/
+      link: /overview
     - theme: alt
       text: GitHub
       link: https://github.com/lynx-community/reactlynx-use
+features:
+  - title: 'ReactLynx Compatible'
+    details: Seamlessly integrates with ReactLynx applications
+    icon: 🎯
+  - title: 'React-Style API'
+    details: Familiar hooks interface for React developers
+    icon: ⚛️
+  - title: 'Cross-Platform'
+    details: Built with Lynx's unique cross-platform capabilities in mind
+    icon: �
 ---

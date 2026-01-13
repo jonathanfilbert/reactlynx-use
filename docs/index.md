@@ -8,7 +8,7 @@ hero:
   actions:
     - theme: brand
       text: Get Started
-      link: /en/events/
+      link: /overview
     - theme: alt
       text: GitHub
       link: https://github.com/lynx-community/reactlynx-use

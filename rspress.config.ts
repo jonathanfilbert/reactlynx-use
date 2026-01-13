@@ -1,6 +1,69 @@
-import * as path from 'path';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { defineConfig } from 'rspress/config';
+
+function getLocaleSidebar(lang: 'en' | 'zh', routePrefix: string) {
+  const localeDir = path.join(__dirname, 'docs', lang);
+  if (!fs.existsSync(localeDir)) {
+    return [];
+  }
+
+  const categoryDirs = fs
+    .readdirSync(localeDir, { withFileTypes: true })
+    .filter((dirent) => dirent.isDirectory())
+    .map((dirent) => dirent.name)
+    .filter((name) => !name.startsWith('.'))
+    .sort();
+
+  const items = [];
+
+  items.push({
+    text: lang === 'en' ? 'Overview' : '概览',
+    link: `${routePrefix}/overview`,
+  });
+
+  for (const categoryDir of categoryDirs) {
+    const categoryPath = path.join(localeDir, categoryDir);
+    const files = fs
+      .readdirSync(categoryPath, { withFileTypes: true })
+      .filter((dirent) => dirent.isFile())
+      .map((dirent) => dirent.name)
+      .filter((file) => file.endsWith('.md') || file.endsWith('.mdx'))
+      .sort((a, b) => {
+        if (a.toLowerCase() === 'readme.md') return -1;
+        if (b.toLowerCase() === 'readme.md') return 1;
+        return a.localeCompare(b);
+      });
+
+    const categoryItems = files.map((file) => {
+      if (file.toLowerCase() === 'readme.md') {
+        return `${routePrefix}/${categoryDir}/README`;
+      }
+      return `${routePrefix}/${categoryDir}/${file.replace(/\.mdx?$/, '')}`;
+    });
+
+    if (categoryItems.length === 0) {
+      continue;
+    }
+
+    const categoryText =
+      lang === 'en'
+        ? categoryDir
+            .split('-')
+            .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+            .join(' ')
+        : categoryDir;
+
+    items.push({
+      text: categoryText,
+      items: categoryItems,
+      collapsible: true,
+      collapsed: categoryDir !== 'events',
+    });
+  }
+
+  return items;
+}
 
 function getApiSidebar() {
   const apiDir = path.join(__dirname, 'docs/api');
@@ -40,160 +103,61 @@ function getApiSidebar() {
   return items;
 }
 
+const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf-8'));
+
 export default defineConfig({
   root: 'docs',
-  title: 'ReactLynx Use',
+  title: `ReactLynxUse v${packageJson.version}`,
   description: 'A React-style hooks library designed specifically for ReactLynx',
   lang: 'en',
   themeConfig: {
     socialLinks: [
       { icon: 'github', mode: 'link', content: 'https://github.com/lynx-community/reactlynx-use' },
     ],
-    nav: [
+    locales: [
       {
-        text: 'Guide',
-        link: '/events/',
-        activeMatch: '^/(en|zh)/(events|lifecycles|mts|side-effects|state)/',
+        lang: 'en',
+        label: 'English',
+        description: 'English Docs',
+        nav: [
+          {
+            text: 'Guide',
+            link: '/overview',
+            activeMatch: '^/(overview|guide|events|lifecycles|mts|side-effects|state)/',
+          },
+          {
+            text: 'API',
+            link: '/api/README',
+            activeMatch: '^/api/',
+          },
+        ],
+        sidebar: {
+          '/api': getApiSidebar(),
+          '/': getLocaleSidebar('en', ''),
+        },
       },
       {
-        text: 'API',
-        link: '/api/README',
-        activeMatch: '^/api/',
+        lang: 'zh',
+        label: '简体中文',
+        description: '中文文档',
+        nav: [
+          {
+            text: '指南',
+            link: '/zh/overview',
+            activeMatch: '^/zh/(overview|guide|events|lifecycles|mts|side-effects|state)/',
+          },
+          {
+            text: 'API',
+            link: '/zh/api/README',
+            activeMatch: '^/zh/api/',
+          },
+        ],
+        sidebar: {
+          '/zh/api': getApiSidebar(),
+          '/zh': getLocaleSidebar('zh', '/zh'),
+        },
       },
     ],
-    sidebar: {
-      '/api/': getApiSidebar(),
-      '/en/': [
-        {
-          text: 'Events',
-          items: [
-            '/en/events/',
-            '/en/events/useEventListener',
-            '/en/events/useExposureForNode',
-            '/en/events/useExposureForPage',
-            '/en/events/useStayTime',
-          ],
-        },
-        {
-          text: 'Lifecycles',
-          items: [
-            '/en/lifecycles/',
-            '/en/lifecycles/useEffectOnce',
-            '/en/lifecycles/useLifecycles',
-            '/en/lifecycles/useMountedState',
-            '/en/lifecycles/useUnmount',
-            '/en/lifecycles/useUnmountPromise',
-            '/en/lifecycles/useUpdateEffect',
-          ],
-        },
-        {
-          text: 'MTS',
-          items: [
-            '/en/mts/',
-            '/en/mts/useMainThreadImperativeHandle',
-            '/en/mts/usePointerEvent',
-            '/en/mts/useTapLock',
-            '/en/mts/useTouchEmulation',
-            '/en/mts/useVelocity',
-          ],
-        },
-        {
-          text: 'Side Effects',
-          items: [
-            '/en/side-effects/',
-            '/en/side-effects/useDebounce',
-            '/en/side-effects/useError',
-            '/en/side-effects/useThrottle',
-            '/en/side-effects/useThrottleFn',
-          ],
-        },
-        {
-          text: 'State',
-          items: [
-            '/en/state/',
-            '/en/state/createMemo',
-            '/en/state/useBoolean',
-            '/en/state/useCounter',
-            '/en/state/useDefault',
-            '/en/state/useImmer',
-            '/en/state/useLatest',
-            '/en/state/useMap',
-            '/en/state/useNumber',
-            '/en/state/usePrevious',
-            '/en/state/useQueue',
-            '/en/state/useSet',
-            '/en/state/useSetState',
-            '/en/state/useToggle',
-            '/en/state/useUniqueId',
-          ],
-        },
-      ],
-      '/zh/': [
-        {
-          text: '事件',
-          items: [
-            '/zh/events/',
-            '/zh/events/useExposureForNode',
-            '/zh/events/useExposureForPage',
-            '/zh/events/useStayTime',
-          ],
-        },
-        {
-          text: '生命周期',
-          items: [
-            '/zh/lifecycles/',
-            '/zh/lifecycles/useEffectOnce',
-            '/zh/lifecycles/useEventListener',
-            '/zh/lifecycles/useLifecycles',
-            '/zh/lifecycles/useMountedState',
-            '/zh/lifecycles/useUnmount',
-            '/zh/lifecycles/useUnmountPromise',
-            '/zh/lifecycles/useUpdateEffect',
-          ],
-        },
-        {
-          text: '多线程',
-          items: [
-            '/zh/mts/',
-            '/zh/mts/useMainThreadImperativeHandle',
-            '/zh/mts/usePointerEvent',
-            '/zh/mts/useTapLock',
-            '/zh/mts/useTouchEmulation',
-            '/zh/mts/useVelocity',
-          ],
-        },
-        {
-          text: '副作用',
-          items: [
-            '/zh/side-effects/',
-            '/zh/side-effects/useDebounce',
-            '/zh/side-effects/useError',
-            '/zh/side-effects/useThrottle',
-            '/zh/side-effects/useThrottleFn',
-          ],
-        },
-        {
-          text: '状态',
-          items: [
-            '/zh/state/',
-            '/zh/state/createMemo',
-            '/zh/state/useBoolean',
-            '/zh/state/useCounter',
-            '/zh/state/useDefault',
-            '/zh/state/useImmer',
-            '/zh/state/useLatest',
-            '/zh/state/useMap',
-            '/zh/state/useNumber',
-            '/zh/state/usePrevious',
-            '/zh/state/useQueue',
-            '/zh/state/useSet',
-            '/zh/state/useSetState',
-            '/zh/state/useToggle',
-            '/zh/state/useUniqueId',
-          ],
-        },
-      ],
-    },
     outline: true,
   },
   locales: [
