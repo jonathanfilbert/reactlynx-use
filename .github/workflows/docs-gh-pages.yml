@@ -1,0 +1,45 @@
+name: Docs (GitHub Pages)
+
+on:
+  push:
+    branches: [feat/docs]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Setup pnpm
+        run: npm i -g corepack@latest --force && corepack enable
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Configure git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Build and deploy
+        env:
+          RSPRESS_DEPLOY: "1"
+          RSPRESS_GH_PAGES_BRANCH: "gh-pages"
+          RSPRESS_GH_PAGES_REPO: https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          RSPRESS_SITE_BASE: /${{ github.event.repository.name }}/
+        run: pnpm docs:build
+
